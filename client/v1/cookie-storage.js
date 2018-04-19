@@ -25,6 +25,7 @@ CookieStorage.prototype.getCookieValue = function (name) {
         self.storage.findCookie(CONSTANTS.COOKIE_HOSTNAME, '/', name, function(err, cookie) {
             if (err) return reject(err);
             if (!_.isObject(cookie)) {
+                console.warn('COOKIE ON HOSTNAME ' + CONSTANTS.COOKIE_HOSTNAME + ' NOT FOUND, TRYING ON ' + CONSTANTS.HOSTNAME)
                 // try with a different hostname
                 self.storage.findCookie(CONSTANTS.HOSTNAME, '/', name, function(err, cookie) {
                     if (err) return reject(err);
