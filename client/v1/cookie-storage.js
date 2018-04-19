@@ -19,32 +19,14 @@ Object.defineProperty(CookieStorage.prototype, "store", {
 var Exceptions = require('./exceptions');
 module.exports = CookieStorage;
 
-function findCookie(path, name) {
-    return new Promise(function(resolve, reject) {
-        self.storage.findCookie(CONSTANTS.COOKIE_HOSTNAME, path, name, function(err, cookie) {
-            if (err) return reject(err);
-            if (!_.isObject(cookie)) {
-                // try with a different hostname
-                self.storage.findCookie(CONSTANTS.HOSTNAME, path, name, function(err, cookie) {
-                    if (err) return reject(err);
-                    if (!_.isObject(cookie)) return reject(new Exceptions.CookieNotValidError(name));
-                    resolve(cookie);
-                });
-            } else {
-                resolve(cookie);
-            }
-        });
-    });
-}
-
 CookieStorage.prototype.getCookieValue = function (name) {
     var self = this;
     return new Promise(function(resolve, reject) {
-        self.storage.findCookie(CONSTANTS.COOKIE_HOSTNAME, path, name, function(err, cookie) {
+        self.storage.findCookie(CONSTANTS.COOKIE_HOSTNAME, '/', name, function(err, cookie) {
             if (err) return reject(err);
             if (!_.isObject(cookie)) {
                 // try with a different hostname
-                self.storage.findCookie(CONSTANTS.HOSTNAME, path, name, function(err, cookie) {
+                self.storage.findCookie(CONSTANTS.HOSTNAME, '/', name, function(err, cookie) {
                     if (err) return reject(err);
                     if (!_.isObject(cookie)) return reject(new Exceptions.CookieNotValidError(name));
                     resolve(cookie);
@@ -54,16 +36,6 @@ CookieStorage.prototype.getCookieValue = function (name) {
             }
         });
     });
-
-
-    // return new Promise(function(resolve, reject) {
-
-    //     self.storage.findCookie(CONSTANTS.COOKIE_HOSTNAME, '/', name, function(err, cookie) {
-    //         if (err) return reject(err);
-    //         if (!_.isObject(cookie)) return reject(new Exceptions.CookieNotValidError(name));
-    //         resolve(cookie);
-    //     })
-    // });
 };
 
 
