@@ -19,16 +19,51 @@ Object.defineProperty(CookieStorage.prototype, "store", {
 var Exceptions = require('./exceptions');
 module.exports = CookieStorage;
 
+function findCookie(path, name) {
+    return new Promise(function(resolve, reject) {
+        self.storage.findCookie(CONSTANTS.COOKIE_HOSTNAME, path, name, function(err, cookie) {
+            if (err) return reject(err);
+            if (!_.isObject(cookie)) {
+                // try with a different hostname
+                self.storage.findCookie(CONSTANTS.HOSTNAME, path, name, function(err, cookie) {
+                    if (err) return reject(err);
+                    if (!_.isObject(cookie)) return reject(new Exceptions.CookieNotValidError(name));
+                    resolve(cookie);
+                });
+            } else {
+                resolve(cookie);
+            }
+        });
+    });
+}
 
 CookieStorage.prototype.getCookieValue = function (name) {
     var self = this;
     return new Promise(function(resolve, reject) {
-        self.storage.findCookie(CONSTANTS.HOSTNAME, '/', name, function(err, cookie) {
+        self.storage.findCookie(CONSTANTS.COOKIE_HOSTNAME, path, name, function(err, cookie) {
             if (err) return reject(err);
-            if (!_.isObject(cookie)) return reject(new Exceptions.CookieNotValidError(name));
-            resolve(cookie);
-        })
+            if (!_.isObject(cookie)) {
+                // try with a different hostname
+                self.storage.findCookie(CONSTANTS.HOSTNAME, path, name, function(err, cookie) {
+                    if (err) return reject(err);
+                    if (!_.isObject(cookie)) return reject(new Exceptions.CookieNotValidError(name));
+                    resolve(cookie);
+                });
+            } else {
+                resolve(cookie);
+            }
+        });
     });
+
+
+    // return new Promise(function(resolve, reject) {
+
+    //     self.storage.findCookie(CONSTANTS.COOKIE_HOSTNAME, '/', name, function(err, cookie) {
+    //         if (err) return reject(err);
+    //         if (!_.isObject(cookie)) return reject(new Exceptions.CookieNotValidError(name));
+    //         resolve(cookie);
+    //     })
+    // });
 };
 
 
@@ -36,7 +71,7 @@ CookieStorage.prototype.putCookie = function (cookie) {
     var args = _.toArray(arguments);
     var self = this;
     return new Promise(function (resolve, reject) {
-        self.storage.putCookie(cookie, resolve);    
+        self.storage.putCookie(cookie, resolve);
     })
 };
 
@@ -44,9 +79,17 @@ CookieStorage.prototype.putCookie = function (cookie) {
 CookieStorage.prototype.getCookies = function () {
     var self = this;
     return new Promise(function(resolve, reject) {
-        self.storage.findCookies(CONSTANTS.HOSTNAME, '/', function(err, cookies){
+        self.storage.findCookies(CONSTANTS.COOKIE_HOSTNAME, '/', function(err, cookies){
             if (err) return reject(err);
-            resolve(cookies || []);
+
+            if (!cookies) {
+                self.storage.findCookies(CONSTANTS.HOSTNAME, '/', function(err, cookies) {
+                    if (err) return reject(err);
+                    resolve(cookies || []);
+                });
+            } else {
+                resolve(cookies || []);
+            }
         })
     });
 };
@@ -72,7 +115,7 @@ CookieStorage.prototype.getSessionId = function () {
         .then(function(cookie) {
             var acceptable = cookie.expires instanceof Date && cookie.expires.getTime() > currentTime;
             if(acceptable) return cookie.value;
-            throw new Exceptions.CookieNotValidError("sessionid"); 
+            throw new Exceptions.CookieNotValidError("sessionid");
         })
 };
 
@@ -80,9 +123,13 @@ CookieStorage.prototype.getSessionId = function () {
 CookieStorage.prototype.removeCheckpointStep = function () {
     var self = this;
     return new Promise(function(resolve, reject) {
-        self.storage.removeCookie(CONSTANTS.HOSTNAME, '/', 'checkpoint_step', function(err){
+        self.storage.removeCookie(CONSTANTS.COOKIE_HOSTNAME, '/', 'checkpoint_step', function(err){
             if (err) return reject(err);
-            resolve();
+
+            // delete in both hostnames
+            self.storage.removeCookie(CONSTANTS.HOSTNAME, '/', 'checkpoint_step', function(err) {
+                resolve();
+            })
         })
     });
 };
@@ -90,5 +137,5 @@ CookieStorage.prototype.removeCheckpointStep = function () {
 
 
 CookieStorage.prototype.destroy = function () {
-    throw new Error("Mehtod destroy is not implemented")
+    throw new Error("Method destroy is not implemented")
 }
