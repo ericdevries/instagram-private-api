@@ -76,7 +76,9 @@ Challenge.resolve = function(checkpointError,defaultMethod,skipResetStep){
                 if(response.body.indexOf('url=instagram://checkpoint/dismiss')!=-1) throw new Exceptions.NoChallengeRequired;
                 throw new TypeError('Invalid response. JSON expected');
             }
-            //Using html unlock if native is not supported
+
+        console.log('JSON CHALLENGE RESPONSE', json.challenge)
+        //Using html unlock if native is not supported
         if(json.challenge && json.challenge.native_flow===false) return that.resolveHtml(checkpointError,defaultMethod)
         //Challenge is not required
         if(json.status==='ok' && json.action==='close') throw new Exceptions.NoChallengeRequired;
