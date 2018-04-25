@@ -77,7 +77,6 @@ Challenge.resolve = function(checkpointError,defaultMethod,skipResetStep){
                 throw new TypeError('Invalid response. JSON expected');
             }
 
-        console.log('JSON CHALLENGE RESPONSE', json.challenge)
         //Using html unlock if native is not supported
         if(json.challenge && json.challenge.native_flow===false) return that.resolveHtml(checkpointError,defaultMethod)
         //Challenge is not required
@@ -90,6 +89,13 @@ Challenge.resolve = function(checkpointError,defaultMethod,skipResetStep){
 
                 if (json.step_data && json.step_data.choice) {
                     choice = json.step_data.choice;
+                }
+
+                if (choice === 'None') {
+                    throw new Exceptions.NotPossibleToResolveChallenge(
+                        'No resolve options given',
+                        Exceptions.NotPossibleToResolveChallenge.CODE.NOT_ACCEPTING_NUMBER
+                    );
                 }
 
                 return new WebRequest(session)
