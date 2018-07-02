@@ -72,9 +72,9 @@ Upload.photo = function (session, streamOrPathOrBuffer, uploadId, name, isSideca
         })
 }
 
-Upload.video = function(session,videoBufferOrPath, photoStreamOrPath,isSidecar){
+Upload.video = function(session, videoBufferOrPath, photoStreamOrPath, isSidecar, calculatedUploadId){
     //Probably not the best way to upload video, best to use stream not to store full video in memory, but it's the easiest
-    var predictedUploadId = uploadId || new Date().getTime();
+    var predictedUploadId = calculatedUploadId || new Date().getTime();
     var request = new Request(session);
     return Helpers.pathToBuffer(videoBufferOrPath)
         .then(function(buffer){
@@ -166,7 +166,7 @@ Upload.album = function (session, medias, caption, disableComments) {
 
         if(media.type === 'photo') {
             uploadPromises.push(
-                Upload.photo(session, media.data, undefined, true, uploadId+index)
+                Upload.photo(session, media.data, undefined, undefined, true, uploadId+index)
                     .then(function (payload) {
                         return Promise.resolve(Object.assign({}, {uploadId: payload.params.uploadId}, media));
                     })
