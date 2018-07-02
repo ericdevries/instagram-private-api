@@ -246,9 +246,9 @@ Request.prototype.setDevice = function(device) {
     this.setHeaders({
         'User-Agent': device.userAgent()
     });
-    this.setData({
-        device_id: device.id
-    });
+    // this.setData({
+    //     device_id: device.id
+    // });
     return this;
 };
 

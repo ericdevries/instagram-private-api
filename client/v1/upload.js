@@ -27,7 +27,7 @@ Upload.prototype.parseParams = function (json) {
 };
 
 
-Upload.photo = function (session, streamOrPathOrBuffer, uploadId, name, isSidecar) {
+Upload.photo = function (session, streamOrPathOrBuffer, uploadId, name, isSidecar, calculatedUploadId) {
     var data = Buffer.isBuffer(streamOrPathOrBuffer) ? streamOrPathOrBuffer : Helpers.pathToStream(streamOrPathOrBuffer);
     // This compresion is just default one
     var compresion = {
@@ -36,7 +36,7 @@ Upload.photo = function (session, streamOrPathOrBuffer, uploadId, name, isSideca
         "quality": "91"
     }
     var isThumbnail = !!uploadId;
-    var predictedUploadId = uploadId || new Date().getTime();
+    var predictedUploadId = uploadId || calculatedUploadId || new Date().getTime();
     var filename = (name || "pending_media_")+predictedUploadId+".jpg"
     var request = new Request(session)
 
@@ -72,7 +72,7 @@ Upload.photo = function (session, streamOrPathOrBuffer, uploadId, name, isSideca
         })
 }
 
-Upload.video = function(session,videoBufferOrPath,uploadId, photoStreamOrPath,isSidecar){
+Upload.video = function(session,videoBufferOrPath, photoStreamOrPath,isSidecar){
     //Probably not the best way to upload video, best to use stream not to store full video in memory, but it's the easiest
     var predictedUploadId = uploadId || new Date().getTime();
     var request = new Request(session);
@@ -166,7 +166,7 @@ Upload.album = function (session, medias, caption, disableComments) {
 
         if(media.type === 'photo') {
             uploadPromises.push(
-                Upload.photo(session, media.data, uploadId+index, undefined, true)
+                Upload.photo(session, media.data, undefined, true, uploadId+index)
                     .then(function (payload) {
                         return Promise.resolve(Object.assign({}, {uploadId: payload.params.uploadId}, media));
                     })
@@ -174,7 +174,7 @@ Upload.album = function (session, medias, caption, disableComments) {
         }
         if(media.type === 'video') {
             uploadPromises.push(
-                Upload.video(session, media.data, uploadId+index, media.thumbnail, true)
+                Upload.video(session, media.data, media.thumbnail, true, uploadId+index)
                     .then(function (payload) {
                         return Promise.resolve(Object.assign({}, payload, media));
                     })
