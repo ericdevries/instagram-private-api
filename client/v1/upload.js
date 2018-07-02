@@ -72,9 +72,9 @@ Upload.photo = function (session, streamOrPathOrBuffer, uploadId, name, isSideca
         })
 }
 
-Upload.video = function(session,videoBufferOrPath,photoStreamOrPath,isSidecar){
+Upload.video = function(session,videoBufferOrPath,uploadId, photoStreamOrPath,isSidecar){
     //Probably not the best way to upload video, best to use stream not to store full video in memory, but it's the easiest
-    var predictedUploadId = new Date().getTime();
+    var predictedUploadId = uploadId || new Date().getTime();
     var request = new Request(session);
     return Helpers.pathToBuffer(videoBufferOrPath)
         .then(function(buffer){
@@ -142,7 +142,9 @@ Upload.album = function (session, medias, caption, disableComments) {
         throw new Error('Invalid album size');
     }
 
-    medias.forEach(function (media) {
+    const uploadId = new Date().getTime();
+
+    medias.forEach(function (media, index) {
         if(['photo', 'video'].indexOf(media.type) === -1) {
             throw new Error('Invalid media type: ' + media.type);
         }
@@ -164,7 +166,7 @@ Upload.album = function (session, medias, caption, disableComments) {
 
         if(media.type === 'photo') {
             uploadPromises.push(
-                Upload.photo(session, media.data, undefined, undefined, true)
+                Upload.photo(session, media.data, uploadId+index, undefined, true)
                     .then(function (payload) {
                         return Promise.resolve(Object.assign({}, {uploadId: payload.params.uploadId}, media));
                     })
@@ -172,7 +174,7 @@ Upload.album = function (session, medias, caption, disableComments) {
         }
         if(media.type === 'video') {
             uploadPromises.push(
-                Upload.video(session, media.data, media.thumbnail, true)
+                Upload.video(session, media.data, uploadId+index, media.thumbnail, true)
                     .then(function (payload) {
                         return Promise.resolve(Object.assign({}, payload, media));
                     })
