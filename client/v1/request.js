@@ -319,7 +319,6 @@ Request.prototype.parseMiddleware = function (response) {
 Request.prototype.errorMiddleware = function (response) {
     response = this.parseMiddleware(response);
     var json = response.body;
-    console.trace('error middleware says: ' + JSON.stringify(json))
     if (json.spam)
         throw new Exceptions.ActionSpamError(json);
     if (json.message == 'challenge_required')
