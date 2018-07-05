@@ -132,7 +132,10 @@ Session.login = function(session, username, password) {
         .setData({
             username: username,
             password: password,
-            login_attempt_count: 0
+            login_attempt_count: 0,
+            device_id: session._device.id,
+            phone_id: Helpers.generateUUID(),
+            adid: Helpers.generateUUID(),
         })
         .signPayload()
         .send()
